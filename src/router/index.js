@@ -10,6 +10,8 @@ import ApplicantsList from '../components/ApplicantsList';
 import ActivityLogs from '../components/ActivityLogs';
 import UserDashboard from '../views/UserDashboard';
 import SetPassword from '../components/SetPassword';
+import ChangePassword from '../components/ChangePassword';
+import { useAuthStore } from "../stores/auth";
 
 const routes = [
   {
@@ -25,10 +27,18 @@ const routes = [
   {
     path: '/admin-dashboard',
     name: 'admin-dashboard',
+    // beforeEnter: (to, from, next)=>{
+
+    // },
     component: AdminDashboard,
+    meta: {
+      requiresAuth: true,
+    },
     children: [
+
+      
       { path: 'user-list', name: 'user-list', component: UserList },
-      { path: 'applicants-list', name: 'applicants-list', component: ApplicantsList },
+      { path: 'applicants-list', name: 'adminApplicantslist', component: ApplicantsList },
       { path: 'activity-logs', name: 'activity-logs', component: ActivityLogs },
     ],
   },
@@ -39,6 +49,11 @@ const routes = [
     meta: {
       requiresAuth: true,
     },
+    children: [
+      { path: 'applicants-list', name: 'applicants-list', component: ApplicantsList },
+      { path: '/change-password', name: 'change-password', component: ChangePassword },
+
+    ],
   },
   {
     path: '/password-recovery',
@@ -56,6 +71,19 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+// Route guard
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore();
+  const isAuthenticated = authStore.getToken();
+
+  
+  if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated) {
+    next({ name: 'login' });
+  } else {
+    next();
+  }
 });
 
 export default router;

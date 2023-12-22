@@ -1,18 +1,40 @@
 <!-- SetPassword.vue -->
 
 <template>
-  <div>
-    <q-card style="max-width: 400px; margin: auto">
+  <div class="">
+    <q-card
+      style="
+        max-width: 400px;
+        height: 80vh;
+        width: 40vw;
+        margin-top: 10vh;
+        margin-left: 35vw;
+      "
+    >
       <q-card-section>
-        <h2 class="text-h6">Set Password</h2>
+        <q-avatar
+          size="80px"
+          color="primary"
+          text-color="white"
+          class="q-mr-sm"
+        >
+          <img
+            src="..\assets\setPassword.png"
+            style="background-color: white"
+          />
+        </q-avatar>
+
+        <h2 class="text-h6">Set Your Password</h2>
 
         <q-form @submit.prevent="setPassword">
+          <p>Enter a password and then confirm the password</p>
           <q-input
             v-model="password"
             label="Set Password"
             type="password"
             outlined
             dense
+            style="margin-bottom: 10px"
           />
           <q-input
             v-model="confirmPassword"
@@ -38,6 +60,8 @@
 import axios from "axios";
 import { useAuthStore } from "../stores/auth";
 import { useRoute } from "vue-router";
+import { HTTP } from "../helper/http-config";
+import { Notify } from "quasar";
 
 export default {
   data() {
@@ -54,20 +78,28 @@ export default {
       if (this.password === this.confirmPassword) {
         try {
           console.log(this.route.params);
-          const response = await axios.post(
-            "http://192.168.11.164:3000/api/setpassword",
+          const response = await HTTP.post(
+            `auth/set-password/${this.route.params.token}`,
             {
               password: this.password,
               confirmPassword: this.confirmPassword,
-              token: this.route.params.token,
             }
           );
-
-          alert("Password set successfully.");
+          Notify.create({
+          position: "top",
+          type: "positive",
+          message: response.data?.message,
+        });
+          // alert("Password set successfully.");
           this.$router.push({ name: "login" });
         } catch (error) {
           console.error("Error setting password:", error);
-          alert("Failed to set password. Please try again.");
+          Notify.create({
+          position: "top",
+          type: "negative",
+          message:error.response.data?.message,
+        });
+          // alert("Failed to set password. Please try again.");
         }
       } else {
         alert("Passwords do not match. Please try again.");

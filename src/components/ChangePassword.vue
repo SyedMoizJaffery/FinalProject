@@ -2,17 +2,35 @@
 
 <template>
   <div>
-    <q-card>
+    <q-card class="shadow-0">
       <q-card-section>
-        <h2 class="text-h6">Change Password</h2>
+        <q-avatar
+          size="100px"
+          color="primary"
+          text-color="white"
+          class="q-mr-sm"
+        >
+          <img
+            src="..\assets\changepassword.png"
+            style="background-color: white"
+          />
+        </q-avatar>
 
-        <q-form @submit.prevent="changePassword">
+        <h2 class="text-h6" style="text-align: center">Change Password</h2>
+
+        <p>Enter your current password and a new password</p>
+
+        <q-form
+          @submit.prevent="changePassword"
+          style="display: grid; justify-content: center"
+        >
           <q-input
             v-model="password"
             label="Current Password"
             type="password"
             outlined
             dense
+            style="margin-bottom: 10px; max-width: 400px"
           />
           <q-input
             v-model="newPassword"
@@ -20,6 +38,7 @@
             type="password"
             outlined
             dense
+            style="margin-bottom: 10px; width: 300px"
           />
           <q-input
             v-model="confirmNewPassword"
@@ -44,6 +63,8 @@
 <script>
 import axios from "axios";
 import { useAuthStore } from "../stores/auth";
+import { HTTP } from "../helper/http-config";
+import { Notify } from "quasar";
 
 export default {
   data() {
@@ -60,8 +81,8 @@ export default {
           const authStore = useAuthStore();
           const token = authStore.getToken();
 
-          await axios.patch(
-            "http://192.168.11.164:3000/api/changepassword",
+          await HTTP.patch(
+            "auth/change-password",
             {
               password: this.password,
               confirmPassword: this.confirmPassword,
@@ -74,9 +95,19 @@ export default {
           );
 
           alert("Password changed successfully!");
+        //   Notify.create({
+        //   position: "top",
+        //   type: "positive",
+        //   message: response.data?.message,
+        // });
         } catch (error) {
           console.error("Error changing password:", error);
-          alert("Failed to change password. Please try again.");
+          // alert("Failed to change password. Please try again.");
+          Notify.create({
+          position: "top",
+          type: "negative",
+          message:error.response.data?.message,
+        });
         }
       } else {
         alert("Passwords do not match or are invalid. Please try again.");

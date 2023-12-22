@@ -7,9 +7,20 @@
         style="display: flex; align-items: center; justify-content: center"
       >
         <q-container>
-          <div style="width: 320px">
-            <q-card class="q-mb-md" style="max-width: 300px; margin: none">
+          <div style="width: 350px">
+            <q-card class="q-mb-md" style="max-width: 350px; margin: none">
               <q-card-section class="q-pa-md">
+                <q-avatar
+                  size="100px"
+                  color="primary"
+                  text-color="white"
+                  class="q-mr-sm"
+                >
+                  <img
+                    src="..\assets\forgotpassword.png"
+                    style="background-color: white"
+                  />
+                </q-avatar>
                 <h1
                   class="q-mb-md text-h6"
                   style="
@@ -17,8 +28,13 @@
                     font-weight: bold;
                   "
                 >
-                  Password Recovery
+                  Trouble logging in?
                 </h1>
+
+                <p>
+                  Enter your email and we'll send you a link to get back into
+                  your account.
+                </p>
 
                 <q-form @submit.prevent="sendEmail">
                   <q-input
@@ -49,6 +65,8 @@
 
 <script>
 import axios from "axios";
+import { HTTP } from "../helper/http-config";
+import { Notify } from "quasar";
 
 export default {
   data() {
@@ -62,16 +80,23 @@ export default {
       this.loading = true;
 
       try {
-        const response = await axios.post(
-          "http://192.168.11.164:3000/api/forgetpassword",
-          {
-            email: this.email,
-          }
-        );
-        alert("email sent");
+        const response = await HTTP.post("auth/forget-Password/", {
+          email: this.email,
+        });
+        // alert("email sent");
+        Notify.create({
+          position: "top",
+          type: "positive",
+          message: response.data?.message,
+        });
       } catch (error) {
         console.error("Error in sending email:", error);
-        alert("Failed to send email. Please try again.");
+        // alert("Failed to send email. Please try again.");
+        Notify.create({
+          position: "top",
+          type: "negative",
+          message:error.response.data?.message,
+        });
       } finally {
         this.loading = false;
       }

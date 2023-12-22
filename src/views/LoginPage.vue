@@ -11,7 +11,7 @@
             <q-card class="q-mb-md" style="max-width: 300px; margin: none">
               <q-card-section class="q-pa-md">
                 <q-avatar
-                  size="50px"
+                  size="80px"
                   color="primary"
                   text-color="white"
                   class="q-mr-sm"
@@ -38,6 +38,7 @@
                     outlined
                     dense
                     placeholder="Enter your email"
+                    style="margin-bottom: 10px"
                   />
                   <q-input
                     v-model="password"
@@ -75,11 +76,21 @@
       </q-page>
     </q-page-container>
   </q-layout>
+  <q-snackbar
+    v-model="snackbarVisible"
+    :color="snackbarColor"
+    :timeout="5000"
+    @action="snackbarVisible = false"
+  >
+    {{ snackbarMessage }}
+  </q-snackbar>
 </template>
   
 <script>
 import axios from "axios";
 import { useAuthStore } from "../stores/auth";
+import { HTTP } from "../helper/http-config";
+import { Notify } from "quasar";
 
 export default {
   data() {
@@ -87,6 +98,10 @@ export default {
       email: "",
       password: "",
       loading: false,
+      
+      snackbarVisible: false,
+      snackbarMessage: "",
+      snackbarColor: "",
     };
   },
   methods: {
@@ -94,13 +109,10 @@ export default {
       this.loading = true;
 
       try {
-        const response = await axios.post(
-          "http://192.168.11.164:3000/api/login",
-          {
-            email: this.email,
-            password: this.password,
-          }
-        );
+        const response = await HTTP.post("auth/logIn", {
+          email: this.email,
+          password: this.password,
+        });
 
         const authStore = useAuthStore();
         authStore.setToken(response.data.data.token);
@@ -113,9 +125,27 @@ export default {
         } else {
           this.$router.push({ name: "user-dashboard" });
         }
+        // Success response
+        this.snackbarMessage = "Login successful!";
+        this.snackbarColor = "green";
+        this.snackbarVisible = true;
+        Notify.create({
+          position: "top",
+          type: "positive",
+          message: response.data?.message,
+        });
       } catch (error) {
         console.error("Login error:", error);
-        alert("Login failed. Please try again.");
+        Notify.create({
+          position: "top",
+          type: "negative",
+          message:error.response.data?.message,
+        });
+        const errorMessage =
+          error.response?.data?.message || "Login failed. Please try again.";
+        this.snackbarMessage = errorMessage;
+        this.snackbarColor = "red";
+        this.snackbarVisible = true;
       }
 
       this.loading = false;
